@@ -2,140 +2,161 @@ package adapters
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type mongoDbDatabase[T database.RecordType] struct {
-	db *mongo.Database
+func Connect(databaseName string) *mongo.Database {
+
+	MONGO_URI := os.Getenv("MONGODB_URI")
+
+	clientOptions := options.Client().ApplyURI(MONGO_URI)
+	client, err := mongo.Connect(context.Background(), clientOptions)
+
+	if err != nil {
+		log.Fatalf("Error in connecting  to mongodDB %s", err)
+	}
+
+	//check the connection
+	err = client.Ping(context.Background(), nil)
+
+	if err != nil {
+		log.Fatalf("Error %s", err)
+	} else {
+		fmt.Println("Connected to mongoDB!!")
+	}
+
+	return client.Database(databaseName)
 }
 
-func NewMongoDBClient() *mongo.Database {
-	uri := os.Getenv("MONGODB_URI")
-	if uri == "" {
-		log.Fatal("You must set the 'MONGODB_URI' environment variable.")
-	}
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-	if err != nil {
-		panic(err)
-	}
+// type mongoDbDatabase[T database.RecordType] struct {
+// 	db *mongo.Database
+// }
 
-	dbName := "streaming_platform"
+// func NewMongoDBClient() *mongo.Database {
+// 	uri := os.Getenv("MONGODB_URI")
+// 	if uri == "" {
+// 		log.Fatal("You must set the 'MONGODB_URI' environment variable.")
+// 	}
+// 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	return client.Database(dbName)
-}
+// 	dbName := "streaming_platform"
 
-func AdaptTypeWithMongoDb[T database.RecordType](db *mongo.Database) *mongoDbDatabase[T] {
-	return &mongoDbDatabase[T]{db: db}
-}
+// 	return client.Database(dbName)
+// }
 
-func (mdba *mongoDbDatabase[T]) Add(collectionName string, record T) (string, error) {
-	collection := mdba.db.Collection(collectionName)
+// func AdaptTypeWithMongoDb[T database.RecordType](db *mongo.Database) *mongoDbDatabase[T] {
+// 	return &mongoDbDatabase[T]{db: db}
+// }
 
-	documentInsertResult, err := collection.InsertOne(context.TODO(), record)
-	if err != nil {
-		return "", err
-	}
+// func (mdba *mongoDbDatabase[T]) Add(collectionName string, record T) (string, error) {
+// 	collection := mdba.db.Collection(collectionName)
 
-	switch v := documentInsertResult.InsertedID.(type) {
-	case primitive.ObjectID:
-		return v.Hex(), nil
-	case string:
-		return v, nil
-	default:
-		return "", errors.New("id is neither string nor objectID")
-	}
-}
+// 	documentInsertResult, err := collection.InsertOne(context.TODO(), record)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-func (mdba *mongoDbDatabase[T]) Get(collectionName string, id string) (T, error) {
-	var value T
-	collection := mdba.db.Collection(collectionName)
+// 	switch v := documentInsertResult.InsertedID.(type) {
+// 	case primitive.ObjectID:
+// 		return v.Hex(), nil
+// 	case string:
+// 		return v, nil
+// 	default:
+// 		return "", errors.New("id is neither string nor objectID")
+// 	}
+// }
 
-	var recordId any
-	recordId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Println(err)
-		recordId = id
-	}
+// func (mdba *mongoDbDatabase[T]) Get(collectionName string, id string) (T, error) {
+// 	var value T
+// 	collection := mdba.db.Collection(collectionName)
 
-	doc := collection.FindOne(context.TODO(), bson.D{{Key: "_id", Value: recordId}})
-	if doc.Err() != nil {
-		return value, doc.Err()
-	}
+// 	var recordId any
+// 	recordId, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		log.Println(err)
+// 		recordId = id
+// 	}
 
-	err = doc.Decode(&value)
-	if err != nil {
-		println(err.Error())
-		return value, fmt.Errorf("unable to find record of %T with id: %s in collection: %s", value, id, collectionName)
-	}
+// 	doc := collection.FindOne(context.TODO(), bson.D{{Key: "_id", Value: recordId}})
+// 	if doc.Err() != nil {
+// 		return value, doc.Err()
+// 	}
 
-	return value, nil
-}
+// 	err = doc.Decode(&value)
+// 	if err != nil {
+// 		println(err.Error())
+// 		return value, fmt.Errorf("unable to find record of %T with id: %s in collection: %s", value, id, collectionName)
+// 	}
 
-func (mdba *mongoDbDatabase[T]) Update(collectionName string, id string, updatedRecord T) error {
-	collection := mdba.db.Collection(collectionName)
+// 	return value, nil
+// }
 
-	var recordId any
-	recordId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Println(err)
-		recordId = id
-	}
+// func (mdba *mongoDbDatabase[T]) Update(collectionName string, id string, updatedRecord T) error {
+// 	collection := mdba.db.Collection(collectionName)
 
-	updateResult, err := collection.UpdateByID(context.TODO(), recordId, bson.M{"$set": updatedRecord})
-	if err != nil {
-		return err
-	}
+// 	var recordId any
+// 	recordId, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		log.Println(err)
+// 		recordId = id
+// 	}
 
-	if updateResult.ModifiedCount == 0 {
-		return fmt.Errorf("no document found with id: %s in collection: %s", id, collectionName)
-	}
+// 	updateResult, err := collection.UpdateByID(context.TODO(), recordId, bson.M{"$set": updatedRecord})
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	if updateResult.ModifiedCount == 0 {
+// 		return fmt.Errorf("no document found with id: %s in collection: %s", id, collectionName)
+// 	}
 
-func (mdba *mongoDbDatabase[T]) Delete(collectionName string, id string) error {
-	collection := mdba.db.Collection(collectionName)
+// 	return nil
+// }
 
-	var recordId any
-	recordId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Println(err)
-		recordId = id
-	}
+// func (mdba *mongoDbDatabase[T]) Delete(collectionName string, id string) error {
+// 	collection := mdba.db.Collection(collectionName)
 
-	deleteResult, err := collection.DeleteOne(context.TODO(), bson.D{{Key: "_id", Value: recordId}})
-	if err != nil {
-		return err
-	}
+// 	var recordId any
+// 	recordId, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		log.Println(err)
+// 		recordId = id
+// 	}
 
-	if deleteResult.DeletedCount == 0 {
-		return fmt.Errorf("no document found with id: %s in collection: %s", id, collectionName)
-	}
+// 	deleteResult, err := collection.DeleteOne(context.TODO(), bson.D{{Key: "_id", Value: recordId}})
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	if deleteResult.DeletedCount == 0 {
+// 		return fmt.Errorf("no document found with id: %s in collection: %s", id, collectionName)
+// 	}
 
-func (mdba *mongoDbDatabase[T]) GetWithPagination(collectionName string, page int, pageSize int) ([]T, error) {
-	collection := mdba.db.Collection(collectionName)
+// 	return nil
+// }
 
-	opts := options.Find().SetSkip(int64((page - 1) * pageSize)).SetLimit(int64(pageSize))
-	cursor, err := collection.Find(context.TODO(), bson.D{}, opts)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(context.TODO())
+// func (mdba *mongoDbDatabase[T]) GetWithPagination(collectionName string, page int, pageSize int) ([]T, error) {
+// 	collection := mdba.db.Collection(collectionName)
 
-	var results []T
-	if err := cursor.All(context.TODO(), &results); err != nil {
-		return nil, err
-	}
+// 	opts := options.Find().SetSkip(int64((page - 1) * pageSize)).SetLimit(int64(pageSize))
+// 	cursor, err := collection.Find(context.TODO(), bson.D{}, opts)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer cursor.Close(context.TODO())
 
-	return results, nil
-}
+// 	var results []T
+// 	if err := cursor.All(context.TODO(), &results); err != nil {
+// 		return nil, err
+// 	}
+
+// 	return results, nil
+// }
