@@ -24,7 +24,7 @@ func main() {
 	}
 
 
-	db := adapters.Connect("ctwoc-database")
+	db := adapters.Connect("ctwoc-database") 	
 
 	mux:= http.NewServeMux()
 

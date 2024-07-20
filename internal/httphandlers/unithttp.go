@@ -2,6 +2,7 @@ package httphandlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -23,8 +24,9 @@ func NewUnitHttpHandler(db *mongo.Database) *UnitHttpHandler {
 
 func (uh *UnitHttpHandler) RegisterServiceWithMux(mux *http.ServeMux) {
 
-	basePath := "/units"
-	mux.HandleFunc(basePath, uh.CreateUnitHandler)
+	basePath := "units"
+	mux.HandleFunc(fmt.Sprintf("POST /%s", basePath), uh.CreateUnitHandler)
+	mux.HandleFunc(fmt.Sprintf("GET /%s", basePath), uh.GetAllUnitHandler)
 }
 
 func (uh *UnitHttpHandler) CreateUnitHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +40,7 @@ func (uh *UnitHttpHandler) CreateUnitHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// log.Println(unit)
 	// Call the service to create the unit in the database
 	id, err := uh.us.CreatUnit(&unit)
 	if err != nil {
@@ -48,4 +51,17 @@ func (uh *UnitHttpHandler) CreateUnitHandler(w http.ResponseWriter, r *http.Requ
 
 	reponse := map[string]string{"id": id}
 	utils.ResponseWithJson(w, http.StatusOK, reponse)
+}
+
+func (uh *UnitHttpHandler) GetAllUnitHandler(w http.ResponseWriter, r *http.Request) {
+
+	unitNames, err := uh.us.GetAllUnits()
+	if err != nil {
+		log.Println("Error in Fetching Units :", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to Fetch Units Names")
+		return
+	}
+
+	utils.ResponseWithJson(w, http.StatusOK, unitNames)
+
 }
