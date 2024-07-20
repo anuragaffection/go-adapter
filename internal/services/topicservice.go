@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"c2c.in/api/internal/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -30,4 +31,28 @@ func (t *TopicService) CreatTopic(topic *models.Topic) (string, error) {
 	id := result.InsertedID.(primitive.ObjectID).Hex()
 
 	return id, nil
+}
+
+func (t *TopicService) GetAllTopics()([]string,error){
+	collection:= t.DB.Collection(t.collectionName)
+	cursor,err:=collection.Find(context.Background(),bson.D{})
+	if err!=nil{
+		return nil,err
+	}
+
+	defer cursor.Close(context.Background())
+
+
+	var topics []models.Topic
+	err= cursor.All(context.Background(),&topics)
+	if err!=nil{
+		return nil,err
+	}
+
+	var topicNames []string
+	for _,topic:= range topics{
+		topicNames = append(topicNames,topic.Name)
+	}
+
+	return topicNames,nil
 }

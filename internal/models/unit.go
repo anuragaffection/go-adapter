@@ -6,5 +6,5 @@ type Unit struct {
 	Name        string            `json:"name,omitempty" bson:"name,omitempty"`
 	Description string            `json:"description,omitempty" bson:"description,omitempty"`
 	MetaData    map[string]string `json:"metaData,omitempty" bson:"metaData,omitempty"`
-	ModuleIds   []string          `json:"moduleIds,omitempty" bson:"moduleIds,omitempty"`
+	// ModuleIds   []string          `json:"moduleIds,omitempty" bson:"moduleIds,omitempty"`
 }

@@ -2,6 +2,7 @@ package httphandlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -22,11 +23,12 @@ func NewTopicHttpHandler(db *mongo.Database) *TopicHttpHandler {
 }
 
 func (th *TopicHttpHandler) RegisterServiceWithMux(mux *http.ServeMux) {
-	basePath := "/topics"
-	mux.HandleFunc(basePath, th.CreateTopicService)
+	basePath := "topics"
+	mux.HandleFunc(fmt.Sprintf("POST /%s",basePath), th.CreateTopicHandler)
+	mux.HandleFunc(fmt.Sprintf("GET /%s",basePath),th.GetAllTopicHandler)
 }
 
-func (th *TopicHttpHandler) CreateTopicService(w http.ResponseWriter, r *http.Request) {
+func (th *TopicHttpHandler) CreateTopicHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Parse the JSON request body into a models.Topic struct
 	var topic models.Topic
@@ -47,4 +49,13 @@ func (th *TopicHttpHandler) CreateTopicService(w http.ResponseWriter, r *http.Re
 
 }
 
+func(th *TopicHttpHandler) GetAllTopicHandler(w http.ResponseWriter,r *http.Request){
+	topicNames,err:=th.ts.GetAllTopics()
+	if err!=nil{
+		log.Println("Error in Fetching Topics",err)
+		utils.RespondWithError(w,http.StatusBadRequest,"Failed to Fetch Topics Names")
+		return 
+	}
 
+	utils.ResponseWithJson(w,http.StatusOK,topicNames)
+}
