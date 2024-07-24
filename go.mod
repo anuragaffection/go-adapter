@@ -1,6 +1,7 @@
 module c2c.in/api
 
-go 1.22.0
+// changed the version , go 1.23 to go 1.22.5
+go 1.22.5
 
 require go.mongodb.org/mongo-driver v1.15.0
 
