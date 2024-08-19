@@ -30,7 +30,7 @@ func (p *PathwayService) CreatePathway(pathway *models.Pathway) (string, error) 
 
 }
 
-func (p *PathwayService) GetAllPathway() ([]string, error) {
+func (p *PathwayService) GetAllPathway() ([]models.Pathway, error) {
 
 	collection := p.DB.Collection(p.collectionName)
 	cursor, err := collection.Find(context.Background(), bson.D{})
@@ -46,10 +46,10 @@ func (p *PathwayService) GetAllPathway() ([]string, error) {
 		return nil, err
 	}
 
-	var pathwayNames []string
-	for _, pathway := range pathways {
-		pathwayNames = append(pathwayNames, pathway.Name)
-	}
+	// var pathwayNames []string
+	// for _, pathway := range pathways {
+	// 	pathwayNames = append(pathwayNames, pathway.Name)
+	// }
 
-	return pathwayNames, nil
+	return pathways, nil
 }
