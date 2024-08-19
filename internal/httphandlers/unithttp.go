@@ -31,7 +31,6 @@ func (uh *UnitHttpHandler) RegisterServiceWithMux(mux *http.ServeMux) {
 
 func (uh *UnitHttpHandler) CreateUnitHandler(w http.ResponseWriter, r *http.Request) {
 
-	log.Println("hi")
 	// Parse the JSON request body into a models.Unit struct
 	var unit models.Unit
 	err := json.NewDecoder(r.Body).Decode(&unit)
@@ -55,7 +54,7 @@ func (uh *UnitHttpHandler) CreateUnitHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (uh *UnitHttpHandler) GetAllUnitHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("hi")
+	// log.Println("hi")
 	unitNames, err := uh.us.GetAllUnits()
 	if err != nil {
 		log.Println("Error in Fetching Units :", err)

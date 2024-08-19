@@ -53,7 +53,7 @@ func (s *UnitService) CreatUnit(unit *models.Unit) (string, error) {
 	return finalId, nil
 }
 
-func (s *UnitService) GetAllUnits() ([]string, error) {
+func (s *UnitService) GetAllUnits() ([]models.Unit, error) {
 	collection := s.DB.Collection(s.collectionName)
 	cursor, err := collection.Find(context.Background(), bson.D{})
 	if err != nil {
@@ -67,11 +67,11 @@ func (s *UnitService) GetAllUnits() ([]string, error) {
 		return nil, err
 	}
 
-	var unitNames []string
-	for _, unit := range units {
-		unitNames = append(unitNames, unit.Name)
-	}
+	// var unitNames []string
+	// for _, unit := range units {
+	// 	unitNames = append(unitNames, unit.Name)
+	// }
 
-	return unitNames, nil
+	return units, nil
 
 }

@@ -31,7 +31,7 @@ func (m *ModuleService) CreateModule(module *models.Module) (string, error) {
 	return id, nil
 }
 
-func (m *ModuleService) GetAllModules() ([]string, error) {
+func (m *ModuleService) GetAllModules() ([]models.Module, error) {
 	collection := m.DB.Collection(m.collectionName)
 	cursor, err := collection.Find(context.Background(), bson.D{})
 	if err != nil {
@@ -46,10 +46,10 @@ func (m *ModuleService) GetAllModules() ([]string, error) {
 		return nil, err
 	}
 
-	var moduleNames []string
-	for _, module := range modules {
-		moduleNames = append(moduleNames, module.Name)
-	}
+	// var moduleNames []string
+	// for _, module := range modules {
+	// 	moduleNames = append(moduleNames, module.Name)
+	// }
 
-	return moduleNames, nil
+	return modules, nil
 }

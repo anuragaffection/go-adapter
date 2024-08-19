@@ -33,7 +33,7 @@ func (t *TopicService) CreatTopic(topic *models.Topic) (string, error) {
 	return id, nil
 }
 
-func (t *TopicService) GetAllTopics()([]string,error){
+func (t *TopicService) GetAllTopics()([]models.Topic,error){
 	collection:= t.DB.Collection(t.collectionName)
 	cursor,err:=collection.Find(context.Background(),bson.D{})
 	if err!=nil{
@@ -49,10 +49,10 @@ func (t *TopicService) GetAllTopics()([]string,error){
 		return nil,err
 	}
 
-	var topicNames []string
-	for _,topic:= range topics{
-		topicNames = append(topicNames,topic.Name)
-	}
+	// var topicNames []string
+	// for _,topic:= range topics{
+	// 	topicNames = append(topicNames,topic.Name)
+	// }
 
-	return topicNames,nil
+	return topics,nil
 }
