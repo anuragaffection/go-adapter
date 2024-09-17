@@ -46,10 +46,24 @@ func (m *ModuleService) GetAllModules() ([]models.Module, error) {
 		return nil, err
 	}
 
-	// var moduleNames []string
-	// for _, module := range modules {
-	// 	moduleNames = append(moduleNames, module.Name)
-	// }
-
 	return modules, nil
+}
+
+func (m *ModuleService) GetSpecificModule(moduleID string) (*models.Module, error) {
+	collection := m.DB.Collection(m.collectionName)
+
+	objectID, err := primitive.ObjectIDFromHex(moduleID)
+
+	filter := bson.M{"_id": objectID}
+
+	result := collection.FindOne(context.Background(), filter)
+
+	var module models.Module
+
+	err = result.Decode(&module)
+	if err != nil {
+		return nil, err
+	}
+
+	return &module, nil
 }

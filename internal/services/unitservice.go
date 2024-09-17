@@ -67,11 +67,24 @@ func (s *UnitService) GetAllUnits() ([]models.Unit, error) {
 		return nil, err
 	}
 
-	// var unitNames []string
-	// for _, unit := range units {
-	// 	unitNames = append(unitNames, unit.Name)
-	// }
-
 	return units, nil
 
+}
+
+func (s *UnitService) GetSpecificUnit(unitID string) (*models.Unit, error) {
+	collection := s.DB.Collection(s.collectionName)
+
+	objectID, err := primitive.ObjectIDFromHex(unitID)
+
+	filter := bson.M{"_id": objectID}
+
+	result := collection.FindOne(context.Background(), filter)
+
+	var unit models.Unit
+	err = result.Decode(&unit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &unit,nil
 }

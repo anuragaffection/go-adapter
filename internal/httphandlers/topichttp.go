@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"regexp"
 
 	"c2c.in/api/internal/models"
 	"c2c.in/api/internal/services"
@@ -26,6 +28,7 @@ func (th *TopicHttpHandler) RegisterServiceWithMux(mux *http.ServeMux) {
 	basePath := "topics"
 	mux.HandleFunc(fmt.Sprintf("POST /%s",basePath), th.CreateTopicHandler)
 	mux.HandleFunc(fmt.Sprintf("GET /%s",basePath),th.GetAllTopicHandler)
+	mux.HandleFunc(fmt.Sprintf("GET /%s/{id}",basePath),th.GetTopicByIdHandler)
 }
 
 func (th *TopicHttpHandler) CreateTopicHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,4 +61,40 @@ func(th *TopicHttpHandler) GetAllTopicHandler(w http.ResponseWriter,r *http.Requ
 	}
 
 	utils.ResponseWithJson(w,http.StatusOK,topicNames)
+}
+
+func(th *TopicHttpHandler) GetTopicByIdHandler(w http.ResponseWriter,r *http.Request){
+	pathSegments := strings.Split(r.URL.Path, "/")
+	if len(pathSegments) < 3 {
+		log.Println("Invalid URL format")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid URL format")
+		return
+	}
+
+	topicID := pathSegments[len(pathSegments)-1]
+	if topicID == "" {
+		log.Println("Missing topic ID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing topic ID")
+		return
+	}
+
+	if !isValidTopicID(topicID) {
+		log.Println("Invalid topic ID format")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid topic ID format")
+		return
+	}
+	getTopic, err := th.ts.GetSpecificTopic(topicID)
+	if err != nil {
+		log.Println("Error in fetching Topic", err)
+		utils.RespondWithError(w, http.StatusBadGateway, "Failed to Fetch Topic ")
+		return
+	}
+
+	utils.ResponseWithJson(w, http.StatusOK, getTopic)
+}
+
+// isValidTopicID checks if the moduleID is a valid hexadecimal string of length 24
+func isValidTopicID(id string) bool {
+	re := regexp.MustCompile(`^[a-fA-F0-9]{24}$`)
+	return re.MatchString(id)
 }

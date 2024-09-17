@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"regexp"
 
 	"c2c.in/api/internal/models"
 	"c2c.in/api/internal/services"
@@ -64,4 +66,40 @@ func (uh *UnitHttpHandler) GetAllUnitHandler(w http.ResponseWriter, r *http.Requ
 
 	utils.ResponseWithJson(w, http.StatusOK, unitNames)
 	
+}
+
+func(uh *UnitHttpHandler) GetUnitByIdHandler(w http.ResponseWriter,r *http.Request){
+	pathSegments := strings.Split(r.URL.Path, "/")
+	if len(pathSegments) < 3 {
+		log.Println("Invalid URL format")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid URL format")
+		return
+	}
+
+	unitID := pathSegments[len(pathSegments)-1]
+	if unitID == "" {
+		log.Println("Missing unit ID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Missing unit ID")
+		return
+	}
+
+	if !isValidUnitID(unitID) {
+		log.Println("Invalid unit ID format")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid unit ID format")
+		return
+	}
+	getUnit, err := uh.us.GetSpecificUnit(unitID)
+	if err != nil {
+		log.Println("Error in fetching units", err)
+		utils.RespondWithError(w, http.StatusBadGateway, "Failed to Fetch units ")
+		return
+	}
+
+	utils.ResponseWithJson(w, http.StatusOK, getUnit)
+}
+
+// isValidUnitID checks if the moduleID is a valid hexadecimal string of length 24
+func isValidUnitID(id string) bool {
+	re := regexp.MustCompile(`^[a-fA-F0-9]{24}$`)
+	return re.MatchString(id)
 }

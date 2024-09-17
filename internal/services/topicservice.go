@@ -33,26 +33,39 @@ func (t *TopicService) CreatTopic(topic *models.Topic) (string, error) {
 	return id, nil
 }
 
-func (t *TopicService) GetAllTopics()([]models.Topic,error){
-	collection:= t.DB.Collection(t.collectionName)
-	cursor,err:=collection.Find(context.Background(),bson.D{})
-	if err!=nil{
-		return nil,err
+func (t *TopicService) GetAllTopics() ([]models.Topic, error) {
+	collection := t.DB.Collection(t.collectionName)
+	cursor, err := collection.Find(context.Background(), bson.D{})
+	if err != nil {
+		return nil, err
 	}
 
 	defer cursor.Close(context.Background())
 
-
 	var topics []models.Topic
-	err= cursor.All(context.Background(),&topics)
-	if err!=nil{
-		return nil,err
+	err = cursor.All(context.Background(), &topics)
+	if err != nil {
+		return nil, err
 	}
 
-	// var topicNames []string
-	// for _,topic:= range topics{
-	// 	topicNames = append(topicNames,topic.Name)
-	// }
+	return topics, nil
+}
 
-	return topics,nil
+func (t *TopicService) GetSpecificTopic(topicID string) (*models.Topic, error) {
+
+	collection := t.DB.Collection(t.collectionName)
+
+	objectID, err := primitive.ObjectIDFromHex(topicID)
+
+	filter := bson.M{"_id": objectID}
+
+	result := collection.FindOne(context.Background(), filter)
+
+	var topic models.Topic
+	err = result.Decode(&topic)
+	if err != nil {
+		return nil, err
+	}
+
+	return &topic, nil
 }

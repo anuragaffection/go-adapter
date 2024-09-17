@@ -46,10 +46,26 @@ func (p *PathwayService) GetAllPathway() ([]models.Pathway, error) {
 		return nil, err
 	}
 
-	// var pathwayNames []string
-	// for _, pathway := range pathways {
-	// 	pathwayNames = append(pathwayNames, pathway.Name)
-	// }
-
 	return pathways, nil
+}
+
+func (p *PathwayService) GetSpecificPathway(pathwayID string)(*models.Pathway,error){
+
+	collection := p.DB.Collection(p.collectionName)
+
+	objectID,err:=primitive.ObjectIDFromHex(pathwayID)
+
+	filter := bson.M{"_id": objectID}
+
+	result := collection.FindOne(context.Background(), filter)
+
+	var pathway models.Pathway
+
+	err = result.Decode(&pathway)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pathway,err
+
 }
