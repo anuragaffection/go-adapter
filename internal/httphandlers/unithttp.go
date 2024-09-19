@@ -29,6 +29,7 @@ func (uh *UnitHttpHandler) RegisterServiceWithMux(mux *http.ServeMux) {
 	basePath := "units"
 	mux.HandleFunc(fmt.Sprintf("POST /%s", basePath), uh.CreateUnitHandler)
 	mux.HandleFunc(fmt.Sprintf("GET /%s", basePath), uh.GetAllUnitHandler)
+	mux.HandleFunc(fmt.Sprintf("GET /%s/{id}",basePath),uh.GetUnitByIdHandler) 
 }
 
 func (uh *UnitHttpHandler) CreateUnitHandler(w http.ResponseWriter, r *http.Request) {
